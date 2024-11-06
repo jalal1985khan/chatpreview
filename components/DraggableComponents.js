@@ -1,18 +1,45 @@
 // DraggableComponents.js
 import React from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
 
-export const TextBox = () => (
-  <div className="bg-white border border-gray-800 rounded-sm">Text Box</div>
+export const WelcomeMessage = () => (
+  <span className="border border-gray-200">How can i Help ?</span>
 )
 
-export const TextInput = () => (
-  <div className="bg-white border border-gray-800 rounded-sm">Text Input</div>
+export const TextArea = () => <Textarea className="bg-white" />
+
+export const SelectComponent = () => (
+  <Select className="w-full bg-white">
+    <SelectTrigger className="w-full bg-white">
+      <SelectValue placeholder="Theme" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="light">Light</SelectItem>
+      <SelectItem value="dark">Dark</SelectItem>
+      <SelectItem value="system">System</SelectItem>
+    </SelectContent>
+  </Select>
 )
+
+export const TextInput = () => <Input className="bg-white" />
 
 export const ButtonComponent = () => (
-  <div className="bg-white border border-gray-800 rounded-sm">Button</div>
+  <Button className="w-full bg-blue-700">Button</Button>
 )
 
 export const ImageInput = () => (
-  <div className="bg-white border border-gray-800 rounded-sm">Image Input</div>
+  <div className="grid w-full max-w-sm items-center gap-1.5">
+    {/* <Label htmlFor="picture">Picture</Label> */}
+    <Input id="picture" type="file" className="bg-white" />
+  </div>
 )

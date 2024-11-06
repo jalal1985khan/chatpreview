@@ -13,10 +13,13 @@ import '@xyflow/react/dist/style.css'
 import { DndProvider, useDrag, useDrop } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
 import {
+  WelcomeMessage,
   TextBox,
   TextInput,
   ButtonComponent,
   ImageInput,
+  SelectComponent,
+  TextArea,
 } from '@/components/DraggableComponents' // Adjust the import path as needed
 import ChartModule from '@/components/ChatModule/page' // Ensure this path is correct
 
@@ -24,12 +27,54 @@ const ItemTypes = {
   COMPONENT: 'component',
 }
 
+// Define the DraggableComponentWithHandles component
+const DraggableComponentWithHandles = ({ Component, index, color }) => {
+  return (
+    <div style={{ position: 'relative', marginTop: '5px' }}>
+      <Handle
+        type="target"
+        position="top"
+        id={`target-${index}`}
+        style={{ background: color }}
+      />
+      <Component />
+      <Handle
+        type="source"
+        position="bottom"
+        id={`source-${index}`}
+        style={{ background: color }}
+      />
+    </div>
+  )
+}
+
 // Define the TextUpdaterNode component
 const TextUpdaterNode = ({ data }) => {
+  const nodeStyle = {
+    backgroundColor: data.isStartNode ? '#4CAF50' : '#FFC107', // Green for start node, orange for others
+    borderColor: data.isStartNode ? 'green' : 'gray',
+    padding: '1rem',
+    borderRadius: '0.25rem',
+    borderWidth: '2px',
+    borderStyle: 'solid',
+  }
+
   return (
-    <div className="bg-yellow-100 relative rounded-sm border border-gray-600 p-1">
-      <Handle type="target" position="top" style={{ background: '#555' }} />
-      <Handle type="source" position="bottom" style={{ background: '#555' }} />
+    <div className="relative" style={nodeStyle}>
+      {!data.isStartNode && (
+        <Handle
+          type="target"
+          position="top"
+          style={{ background: data.color }}
+        />
+      )}
+      <Handle
+        type="source"
+        position="bottom"
+        style={{ background: data.color }}
+      />
+
+      {data.isStartNode && <p className="text-white font-bold">Start Node</p>}
 
       {data.components.length === 0 && (
         <p className="text-black border border-gray-500 rounded-md">
@@ -38,9 +83,12 @@ const TextUpdaterNode = ({ data }) => {
       )}
 
       {data.components.map((Component, index) => (
-        <div key={index} style={{ marginTop: '5px' }}>
-          <Component />
-        </div>
+        <DraggableComponentWithHandles
+          key={index}
+          Component={Component}
+          index={index}
+          color={data.color}
+        />
       ))}
     </div>
   )
@@ -59,7 +107,7 @@ const DraggableComponent = ({ component: Component }) => {
     <div
       ref={drag}
       style={{ opacity: isDragging ? 0.5 : 1 }}
-      className="bg-green-300 p-2 m-1"
+      className="bg-green-300 p-2 m-1 rounded-md"
     >
       <Component />
     </div>
@@ -76,7 +124,7 @@ const NodeComponent = ({ data, onDelete, onDrop }) => {
   })
 
   return (
-    <div ref={drop}>
+    <div ref={drop} style={{ position: 'relative' }}>
       <TextUpdaterNode data={data} />
       <button
         onClick={onDelete}
@@ -103,15 +151,29 @@ function Flow() {
   )
 
   const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
-    []
+    (params) => {
+      const sourceNode = nodes.find((node) => node.id === params.source)
+      const edgeColor = sourceNode?.data.color || '#000'
+
+      const newEdge = {
+        ...params,
+        style: { stroke: edgeColor, strokeWidth: 2 }, // Set edge color and width
+      }
+      setEdges((eds) => addEdge(newEdge, eds))
+    },
+    [nodes]
   )
 
   const addNode = () => {
+    const isStartNode = nodes.length === 0
     const newNode = {
       id: (nodes.length + 1).toString(),
-      label: 'hello',
-      data: { components: [] },
+      label: isStartNode ? 'Start Node' : 'Node',
+      data: {
+        components: [],
+        isStartNode,
+        color: isStartNode ? '#4CAF50' : '#FFC107', // Green for start node, orange for others
+      },
       position: { x: Math.random() * 400, y: Math.random() * 400 },
     }
     setNodes((nds) => nds.concat(newNode))
@@ -156,10 +218,12 @@ function Flow() {
       <div style={{ height: '100vh', display: 'flex' }}>
         <div className="bg-pink-800 p-4 gap-2">
           <h3>Draggable Components</h3>
-          <DraggableComponent component={TextBox} />
+          <DraggableComponent component={WelcomeMessage} />
+          <DraggableComponent component={TextArea} />
           <DraggableComponent component={TextInput} />
           <DraggableComponent component={ButtonComponent} />
           <DraggableComponent component={ImageInput} />
+          <DraggableComponent component={SelectComponent} />
         </div>
         <div style={{ flexGrow: 1, position: 'relative' }}>
           <button
